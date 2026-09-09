@@ -87,9 +87,28 @@ Object.assign(productCopy.pl, {
     "Planowana warstwa wyceny kolekcji LEGO, zegarków, nieruchomości, metali szlachetnych i krypto. Zewnętrzne źródła cen mają aktualizować szacowane wartości obok tradycyjnych aktywów finansowych."
   ]
 });
-let language=localStorage.getItem("vancore-language")||"en";
-function setLanguage(lang){language=lang;document.documentElement.lang=lang;document.querySelectorAll("[data-i18n]").forEach(el=>{const key=el.dataset.i18n;if(lang==="pl"&&translations.pl[key])el.innerHTML=translations.pl[key];else if(lang==="en"&&el.dataset.en)el.innerHTML=el.dataset.en});document.querySelectorAll(".language-toggle span").forEach((el,i)=>el.classList.toggle("active",i===(lang==="en"?0:1)));localStorage.setItem("vancore-language",lang);updateProduct(document.querySelector('[role="tab"][aria-selected="true"]').dataset.product)}
-document.querySelectorAll("[data-i18n]").forEach(el=>el.dataset.en=el.innerHTML);
+const englishCopy = new WeakMap();
+document.querySelectorAll("[data-i18n]").forEach(el => englishCopy.set(el, el.innerHTML));
+
+let language = localStorage.getItem("vancore-language") || "en";
+
+function setLanguage(lang) {
+  language = lang;
+  document.documentElement.lang = lang;
+
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const key = el.dataset.i18n;
+    const copy = lang === "pl" ? translations.pl[key] : englishCopy.get(el);
+    if (copy !== undefined) el.innerHTML = copy;
+  });
+
+  document.querySelectorAll(".language-toggle span").forEach((el, i) => {
+    el.classList.toggle("active", i === (lang === "en" ? 0 : 1));
+  });
+
+  localStorage.setItem("vancore-language", lang);
+  updateProduct(document.querySelector('[role="tab"][aria-selected="true"]').dataset.product);
+}
 document.querySelector(".language-toggle").addEventListener("click",()=>setLanguage(language==="en"?"pl":"en"));
 function updateProduct(key){const [title,copy]=productCopy[language][key];document.getElementById("product-title").textContent=title;document.getElementById("product-copy").textContent=copy;document.getElementById("product-ui").dataset.mode=key}
 document.querySelectorAll('[role="tab"]').forEach(tab=>tab.addEventListener("click",()=>{document.querySelectorAll('[role="tab"]').forEach(t=>t.setAttribute("aria-selected","false"));tab.setAttribute("aria-selected","true");updateProduct(tab.dataset.product)}));
